@@ -5,7 +5,7 @@ module.exports = {
     description: 'Admin panel - Manage bot administrators',
     usage: 'admin [add|remove|list] [user_id]',
     cooldown: 5,
-    role: 1,
+    role: 2,
     author: 'NeoKEX',
     category: 'admin'
   },
@@ -92,10 +92,11 @@ module.exports = {
     adminText += `  • Message Delivery: Instant (No Queue)\n\n`;
     
     adminText += `🔐 Role System:\n`;
-    adminText += `  0 - All Users\n`;
-    adminText += `  1 - Bot Admins\n`;
-    adminText += `  2 - Group Admins\n`;
-    adminText += `  3 - Bot Developer\n\n`;
+    adminText += `  0 - Normal Users\n`;
+    adminText += `  1 - Group Admins\n`;
+    adminText += `  2 - Bot Admins\n`;
+    adminText += `  3 - Premium Users\n`;
+    adminText += `  4 - Bot Developer\n\n`;
     
     adminText += `⚙️ Configuration:\n`;
     adminText += `  • Prefix: ${config.PREFIX}\n`;
