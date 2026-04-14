@@ -3,14 +3,16 @@ const axios = require('axios');
 const SEARCH_API = 'https://lyric-search-neon.vercel.app/kshitiz?keyword=';
 
 module.exports = {
-  name: 'tiktok',
-  aliases: ['tt'],
-  description: 'Search and download a TikTok video',
-  usage: 'tiktok <search query>',
-  cooldown: 10,
-  role: 0,
-  author: 'Neoaz',
-  category: 'media',
+  config: {
+    name: 'tiktok',
+    aliases: ['tt'],
+    description: 'Search and download a TikTok video',
+    usage: 'tiktok <search query>',
+    cooldown: 10,
+    role: 0,
+    author: 'Neoaz',
+    category: 'media'
+  },
 
   async run({ api, event, args, logger }) {
     if (args.length === 0) {

@@ -1,12 +1,14 @@
 module.exports = {
-  name: 'eval',
-  aliases: ['ev', 'js'],
-  description: 'Execute JavaScript code in the bot context (Developer only)',
-  usage: 'eval <code>',
-  cooldown: 0,
-  role: 4,
-  author: 'NTKhang',
-  category: 'owner',
+  config: {
+    name: 'eval',
+    aliases: ['ev', 'js'],
+    description: 'Execute JavaScript code in the bot context (Developer only)',
+    usage: 'eval <code>',
+    cooldown: 0,
+    role: 4,
+    author: 'NTKhang',
+    category: 'owner'
+  },
 
   async run({ api, event, args, bot, logger, config }) {
     const code = args.join(' ');

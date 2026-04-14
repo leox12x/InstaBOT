@@ -3,14 +3,16 @@ const util = require('util');
 const execPromise = util.promisify(exec);
 
 module.exports = {
-  name: 'shell',
-  aliases: ['sh', 'exec'],
-  description: 'Execute shell commands on the host (Developer only)',
-  usage: 'shell <command>',
-  cooldown: 5,
-  role: 4,
-  author: 'NeoKEX',
-  category: 'owner',
+  config: {
+    name: 'shell',
+    aliases: ['sh', 'exec'],
+    description: 'Execute shell commands on the host (Developer only)',
+    usage: 'shell <command>',
+    cooldown: 5,
+    role: 4,
+    author: 'NeoKEX',
+    category: 'owner'
+  },
 
   async run({ api, event, args, logger }) {
     const command = args.join(' ');

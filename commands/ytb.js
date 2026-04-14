@@ -6,14 +6,16 @@ const SEARCH_API = 'https://neokex-dlapis.vercel.app/api/search';
 const DL_API     = 'https://neokex-dlapis.vercel.app/api/alldl';
 
 module.exports = {
-  name: 'ytb',
-  aliases: ['youtube', 'yt'],
-  description: 'Download YouTube video or audio',
-  usage: 'ytb -v <query>  |  ytb -a <query>',
-  cooldown: 15,
-  role: 0,
-  author: 'Neoaz',
-  category: 'media',
+  config: {
+    name: 'ytb',
+    aliases: ['youtube', 'yt'],
+    description: 'Download YouTube video or audio',
+    usage: 'ytb -v <query>  |  ytb -a <query>',
+    cooldown: 15,
+    role: 0,
+    author: 'Neoaz',
+    category: 'media'
+  },
 
   async run({ api, event, args, logger }) {
     const type  = args[0];

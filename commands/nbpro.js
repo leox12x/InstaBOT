@@ -3,14 +3,16 @@ const fs = require('fs-extra');
 const path = require('path');
 
 module.exports = {
-  name: 'nbpro',
-  aliases: ['nb', 'nanobanana'],
-  description: 'Generate or edit images using Nano-banana Pro AI',
-  usage: 'nbpro <prompt>  |  nbpro <prompt> (send with image to edit)',
-  cooldown: 15,
-  role: 0,
-  author: 'Tawsif',
-  category: 'ai',
+  config: {
+    name: 'nbpro',
+    aliases: ['nb', 'nanobanana'],
+    description: 'Generate or edit images using Nano-banana Pro AI',
+    usage: 'nbpro <prompt>  |  nbpro <prompt> (send with image to edit)',
+    cooldown: 15,
+    role: 0,
+    author: 'Tawsif',
+    category: 'ai'
+  },
 
   async run({ api, event, args, logger }) {
     const prompt = args.join(' ');

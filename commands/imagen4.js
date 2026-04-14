@@ -5,14 +5,16 @@ const path = require('path');
 const API_ENDPOINT = 'https://neokex-img-api.vercel.app/generate';
 
 module.exports = {
-  name: 'imagen4',
-  aliases: ['img4', 'gen4'],
-  description: 'Generate a high-quality image using the Imagen 4 model',
-  usage: 'imagen4 <prompt>',
-  cooldown: 15,
-  role: 0,
-  author: 'NeoKEX',
-  category: 'ai',
+  config: {
+    name: 'imagen4',
+    aliases: ['img4', 'gen4'],
+    description: 'Generate a high-quality image using the Imagen 4 model',
+    usage: 'imagen4 <prompt>',
+    cooldown: 15,
+    role: 0,
+    author: 'NeoKEX',
+    category: 'ai'
+  },
 
   async run({ api, event, args, logger }) {
     const prompt = args.join(' ').trim();

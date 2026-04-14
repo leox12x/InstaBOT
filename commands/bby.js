@@ -3,14 +3,16 @@ const axios = require('axios');
 const BASE_URL = 'https://noobs-api.top/dipto/baby';
 
 module.exports = {
-  name: 'bby',
-  aliases: ['baby', 'bbe', 'babe'],
-  description: 'Chat with Baby AI — teach it, manage replies, and more',
-  usage: 'bby <message> | teach <msg> - <reply> | remove <msg> | list | msg <msg>',
-  cooldown: 3,
-  role: 0,
-  author: 'dipto',
-  category: 'ai',
+  config: {
+    name: 'bby',
+    aliases: ['baby', 'bbe', 'babe'],
+    description: 'Chat with Baby AI — teach it, manage replies, and more',
+    usage: 'bby <message> | teach <msg> - <reply> | remove <msg> | list | msg <msg>',
+    cooldown: 3,
+    role: 0,
+    author: 'dipto',
+    category: 'ai'
+  },
 
   async run({ api, event, args, logger }) {
     if (args.length === 0) {

@@ -3,14 +3,16 @@ const fs = require('fs-extra');
 const path = require('path');
 
 module.exports = {
-  name: 'pinterest',
-  aliases: ['pin', 'pins'],
-  description: 'Search Pinterest for images',
-  usage: 'pinterest <query> [-count]  (e.g. pinterest anime -5)',
-  cooldown: 10,
-  role: 0,
-  author: 'Mahi--',
-  category: 'media',
+  config: {
+    name: 'pinterest',
+    aliases: ['pin', 'pins'],
+    description: 'Search Pinterest for images',
+    usage: 'pinterest <query> [-count]  (e.g. pinterest anime -5)',
+    cooldown: 10,
+    role: 0,
+    author: 'Mahi--',
+    category: 'media'
+  },
 
   async run({ api, event, args, logger }) {
     if (args.length === 0) {

@@ -4,14 +4,16 @@ const FormData = require('form-data');
 const IMGBB_API_KEY = '1b4d99fa0c3195efe42ceb62670f2a25';
 
 module.exports = {
-  name: 'imgbb',
-  aliases: ['uploadimg', 'imgupload'],
-  description: 'Upload image(s) to imgbb and get permanent links',
-  usage: 'imgbb (send with image attachment)',
-  cooldown: 5,
-  role: 0,
-  author: 'xnil6x',
-  category: 'utility',
+  config: {
+    name: 'imgbb',
+    aliases: ['uploadimg', 'imgupload'],
+    description: 'Upload image(s) to imgbb and get permanent links',
+    usage: 'imgbb (send with image attachment)',
+    cooldown: 5,
+    role: 0,
+    author: 'xnil6x',
+    category: 'utility'
+  },
 
   async run({ api, event, logger }) {
     const attachments = (event.attachments || []).filter(a =>
