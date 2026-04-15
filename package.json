@@ -19,7 +19,7 @@
     "node-cron": "^4.2.1",
     "sql.js": "^1.14.1",
     "tough-cookie": "^6.0.0",
-    "vm2": "^2.1.5",
+    "vm2": "^3.10.5",
     "winston": "^3.18.3"
   },
   "devDependencies": {
