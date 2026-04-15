@@ -11,14 +11,21 @@ module.exports = {
     category: 'config'
   },
 
-  async run({ api, event, args, bot, globalData, threadsData, permission, logger }) {
+  async run({ api, event, args, bot, database, config, PermissionManager, logger }) {
     try {
       const threadID = event.threadId;
       const senderID = event.senderId;
-      const aliasesData = await threadsData.get(threadID, 'data.aliases', {});
+
+      // Get aliases from database
+      const threadData = database.getThreadData(threadID);
+      const aliasesData = threadData.aliases || {};
+
+      // Global aliases stored in config (admin managed)
+      const globalAliases = config.GLOBAL_ALIASES || {};
 
       const action = args[0]?.toLowerCase();
 
+      // ── ADD ALIAS ──────────────────────────────────────────────────────
       if (action === 'add') {
         if (!args[1] || !args[2]) {
           return api.sendMessage(
@@ -32,62 +39,65 @@ module.exports = {
         const isGlobal = args[3] === '-g';
 
         // Check if command exists
-        if (!bot.commandLoader.hasCommand(commandName)) {
+        if (!bot.commandLoader.getCommand(commandName)) {
           return api.sendMessage(`❌ Command "${commandName}" does not exist!`, threadID);
         }
 
-        // Check if alias is already a command
-        if (bot.commandLoader.hasCommand(alias)) {
+        // Check if alias is already a command name
+        if (bot.commandLoader.getCommand(alias)) {
           return api.sendMessage(`❌ "${alias}" is already a command name!`, threadID);
         }
 
         if (isGlobal) {
-          // Check permission for global alias
-          const userRole = permission.getUserRole(senderID);
+          // Global alias - requires admin role
+          const userRole = PermissionManager.getUserRole(senderID);
           if (userRole < 2) {
             return api.sendMessage('❌ Only bot admins can add global aliases!', threadID);
           }
 
-          // Check if alias already exists globally
-          const globalAliases = await globalData.get('setalias', 'data', []);
-          const existingGlobal = globalAliases.find(a => a.aliases.includes(alias));
-          if (existingGlobal) {
-            return api.sendMessage(`❌ Alias "${alias}" already exists for command "${existingGlobal.commandName}"!`, threadID);
+          // Check if alias exists in any global command
+          for (const [cmd, als] of Object.entries(globalAliases)) {
+            if (als.includes(alias)) {
+              return api.sendMessage(`❌ Alias "${alias}" already exists for "${cmd}"!`, threadID);
+            }
           }
 
-          // Check bot's global aliases
-          if (bot.aliases.has(alias)) {
-            return api.sendMessage(`❌ Alias "${alias}" already exists globally for "${bot.aliases.get(alias)}"!`, threadID);
+          // Add to global aliases
+          if (!globalAliases[commandName]) {
+            globalAliases[commandName] = [];
+          }
+          if (!globalAliases[commandName].includes(alias)) {
+            globalAliases[commandName].push(alias);
           }
 
-          // Add global alias
-          const cmdAliases = globalAliases.find(a => a.commandName === commandName);
-          if (cmdAliases) {
-            cmdAliases.aliases.push(alias);
-          } else {
-            globalAliases.push({ commandName, aliases: [alias] });
-          }
-
-          await globalData.set('setalias', globalAliases, 'data');
+          // Also register in bot's alias system
+          bot.aliases = bot.aliases || new Map();
           bot.aliases.set(alias, commandName);
+
+          // Save to config
+          config.GLOBAL_ALIASES = globalAliases;
+          database.save();
 
           return api.sendMessage(`✅ Global alias added!\n\n📝 "${alias}" → "${commandName}"`, threadID);
         }
 
-        // Add group alias
-        const existingInGroup = Object.entries(aliasesData).find(([cmd, als]) => als.includes(alias));
-        if (existingInGroup) {
-          return api.sendMessage(`❌ Alias "${alias}" already exists for "${existingInGroup[0]}" in this group!`, threadID);
+        // Group alias
+        const existingEntry = Object.entries(aliasesData).find(([cmd, als]) => als.includes(alias));
+        if (existingEntry) {
+          return api.sendMessage(`❌ Alias "${alias}" already exists for "${existingEntry[0]}" in this group!`, threadID);
         }
 
-        const oldAlias = aliasesData[commandName] || [];
-        oldAlias.push(alias);
-        aliasesData[commandName] = oldAlias;
-        await threadsData.set(threadID, aliasesData, 'data.aliases');
+        if (!aliasesData[commandName]) {
+          aliasesData[commandName] = [];
+        }
+        aliasesData[commandName].push(alias);
+
+        database.setThreadData(threadID, { aliases: aliasesData });
 
         return api.sendMessage(`✅ Alias added in this group!\n\n📝 "${alias}" → "${commandName}"`, threadID);
       }
 
+      // ── REMOVE ALIAS ───────────────────────────────────────────────────
       if (action === 'remove' || action === 'rm') {
         if (!args[1] || !args[2]) {
           return api.sendMessage(
@@ -100,59 +110,73 @@ module.exports = {
         const commandName = args[2].toLowerCase();
         const isGlobal = args[3] === '-g';
 
-        if (!bot.commandLoader.hasCommand(commandName)) {
+        if (!bot.commandLoader.getCommand(commandName)) {
           return api.sendMessage(`❌ Command "${commandName}" does not exist!`, threadID);
         }
 
         if (isGlobal) {
-          const userRole = permission.getUserRole(senderID);
+          const userRole = PermissionManager.getUserRole(senderID);
           if (userRole < 2) {
             return api.sendMessage('❌ Only bot admins can remove global aliases!', threadID);
           }
 
-          const globalAliases = await globalData.get('setalias', 'data', []);
-          const cmdAliases = globalAliases.find(a => a.commandName === commandName);
-
-          if (!cmdAliases || !cmdAliases.aliases.includes(alias)) {
+          const cmdAliases = globalAliases[commandName];
+          if (!cmdAliases || !cmdAliases.includes(alias)) {
             return api.sendMessage(`❌ Alias "${alias}" not found for "${commandName}"!`, threadID);
           }
 
-          cmdAliases.aliases.splice(cmdAliases.aliases.indexOf(alias), 1);
-          await globalData.set('setalias', globalAliases, 'data');
-          bot.aliases.delete(alias);
+          const idx = cmdAliases.indexOf(alias);
+          cmdAliases.splice(idx, 1);
+          if (cmdAliases.length === 0) {
+            delete globalAliases[commandName];
+          }
+
+          // Remove from bot's alias system
+          if (bot.aliases) {
+            bot.aliases.delete(alias);
+          }
+
+          config.GLOBAL_ALIASES = globalAliases;
+          database.save();
 
           return api.sendMessage(`✅ Global alias removed!\n\n📝 "${alias}" → "${commandName}"`, threadID);
         }
 
         // Remove group alias
-        const oldAlias = aliasesData[commandName];
-        if (!oldAlias || !oldAlias.includes(alias)) {
+        const cmdAliases = aliasesData[commandName];
+        if (!cmdAliases || !cmdAliases.includes(alias)) {
           return api.sendMessage(`❌ Alias "${alias}" not found for "${commandName}" in this group!`, threadID);
         }
 
-        oldAlias.splice(oldAlias.indexOf(alias), 1);
-        await threadsData.set(threadID, aliasesData, 'data.aliases');
+        const idx = cmdAliases.indexOf(alias);
+        cmdAliases.splice(idx, 1);
+        if (cmdAliases.length === 0) {
+          delete aliasesData[commandName];
+        }
+
+        database.setThreadData(threadID, { aliases: aliasesData });
 
         return api.sendMessage(`✅ Alias removed from this group!\n\n📝 "${alias}" → "${commandName}"`, threadID);
       }
 
+      // ── LIST ALIASES ────────────────────────────────────────────────────
       if (action === 'list') {
         if (args[1] === '-g') {
-          const globalAliases = await globalData.get('setalias', 'data', []);
-          if (!globalAliases.length) {
+          const entries = Object.entries(globalAliases);
+          if (!entries.length) {
             return api.sendMessage('📋 No global aliases set!', threadID);
           }
 
           let msg = '📋 Global Aliases:\n\n';
-          globalAliases.forEach(({ commandName, aliases }) => {
-            msg += `• ${commandName}: ${aliases.join(', ')}\n`;
+          entries.forEach(([commandName, aliasList]) => {
+            msg += `• ${commandName}: ${aliasList.join(', ')}\n`;
           });
           return api.sendMessage(msg, threadID);
         }
 
         const entries = Object.entries(aliasesData);
         if (!entries.length) {
-          return api.sendMessage('📋 No aliases in this group!', threadID);
+          return api.sendMessage('📋 No aliases in this group!\n\nUse: setalias add <alias> <command>', threadID);
         }
 
         let msg = '📋 Aliases in this group:\n\n';
@@ -162,9 +186,9 @@ module.exports = {
         return api.sendMessage(msg, threadID);
       }
 
-      // No valid action
+      // ── INVALID ACTION ─────────────────────────────────────────────────
       return api.sendMessage(
-        '❌ Invalid action!\n\nUsage:\n• setalias add <alias> <command> - Add alias\n• setalias remove <alias> <command> - Remove alias\n• setalias list - List aliases\n• setalias list -g - List global aliases',
+        '❌ Invalid action!\n\nUsage:\n• setalias add <alias> <command> - Add alias\n• setalias add <alias> <command> -g - Add global alias\n• setalias remove <alias> <command> - Remove alias\n• setalias list - List group aliases\n• setalias list -g - List global aliases',
         threadID
       );
 

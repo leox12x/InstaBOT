@@ -97,7 +97,28 @@ module.exports = {
         return;
       }
 
-      const command = commandLoader.getCommand(commandName);
+      // Resolve aliases (group-level first, then global via bot.aliases Map)
+      let resolvedCommandName = commandName;
+
+      // Check group aliases (stored per-thread in database)
+      const threadData = database.getThreadData(event.threadId);
+      const groupAliases = threadData?.aliases || {};
+      for (const [cmd, aliasList] of Object.entries(groupAliases)) {
+        if (aliasList.includes(commandName)) {
+          resolvedCommandName = cmd;
+          break;
+        }
+      }
+
+      // Fallback to global aliases via bot.aliases Map
+      if (resolvedCommandName === commandName && bot.aliases) {
+        const globalCmd = bot.aliases.get(commandName);
+        if (globalCmd) {
+          resolvedCommandName = globalCmd;
+        }
+      }
+
+      const command = commandLoader.getCommand(resolvedCommandName);
 
       // Command not found
       if (!command) {

@@ -20,6 +20,7 @@ class InstagramBot {
     this.username          = null;
     this.commandLoader     = new CommandLoader();
     this.eventLoader       = new EventLoader(this);
+    this.aliases          = new Map();
     this.reconnectAttempts = 0;
     this.shouldReconnect   = config.AUTO_RECONNECT;
     this.isRunning         = false;
@@ -68,6 +69,7 @@ class InstagramBot {
       await database.ready;
 
       await this.commandLoader.loadCommands();
+      this._loadGlobalAliases();
       await this.eventLoader.loadEvents();
       this.eventLoader.registerEvents();
 
@@ -204,6 +206,18 @@ class InstagramBot {
     }
 
     this.keepAlive();
+  }
+
+  _loadGlobalAliases() {
+    const globalAliases = config.GLOBAL_ALIASES || {};
+    for (const [commandName, aliasList] of Object.entries(globalAliases)) {
+      for (const alias of aliasList) {
+        this.aliases.set(alias, commandName);
+      }
+    }
+    if (this.aliases.size > 0) {
+      logger.info(`Loaded ${this.aliases.size} global aliases`);
+    }
   }
 
   _scheduleMqttRestart() {

@@ -140,6 +140,7 @@
     "duration": 500,
     "notes": "Shows typing indicator before sending messages. duration is in milliseconds (1000 = 1 second). Set enable to false to disable."
   },
+  "globalAliases": {},
   "optionsFca": {
     "online": true,
     "selfListen": true,
