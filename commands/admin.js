@@ -68,7 +68,7 @@ module.exports = {
       );
 
     } catch (error) {
-
+      logger.error('Admin command error:', { error: error.message, stack: error.stack, args, senderID: event.senderID });
       return api.sendMessage('❌ Error executing admin command.', event.threadId);
     }
   },

@@ -33,6 +33,13 @@ class InstagramBot {
   startHealthServer() {
     const port = parseInt(process.env.PORT || config.DASHBOARD_PORT || 3000, 10);
     const server = http.createServer((req, res) => {
+      // Dedicated health check route for Render/uptime monitors
+      if (req.url === '/health' || req.url === '/') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ status: 'ok' }));
+        return;
+      }
+      // Default: return bot info
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({
         status: 'ok',

@@ -38,7 +38,7 @@ module.exports = {
   ANTI_INBOX:   c.antiInbox   ?? false,
   LANGUAGE:     c.language    || 'en',
   NICK_NAME_BOT: c.nickNameBot || 'Bot',
-  PREFIX:       process.env.PREFIX || c.prefix || '~',
+  PREFIX:       c.prefix || '!',
   NO_PREFIX:    c.noPrefix ?? true,
 
   // ── Admin-only mode ───────────────────────────────────────────────────
